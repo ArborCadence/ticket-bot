@@ -32,7 +32,7 @@
         <p><b>FC Bayern München -  VFB Stuttgart</b> (Allianz Arena)</p>
          <p><b>ACHTUNG! Weitergabe der Tickets nur noch über FCB-App, Allianz Arena App oder DTC möglich und denkt daran wir haben eine NEUE Konto-Nummer</b></p>
          <p class="alert alert-warning">https://fcbayern.com/de/mobile-app
-Bitte gebt im Feld &#34;Bemerkung&#34; eure Kontaktdaten zum DTC, FCB-App oder Allianz Arena-App an. 
+Bitte gebt im Feld &#34;Bemerkung&#34; eure Kontadaten zum DTC, FCB-App oder Allianz Arena-App an. 
 Und denkt daran wir haben eine NEUE Konto-Nummer</p>
 
     </div>
