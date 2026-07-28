@@ -89,6 +89,12 @@ def send_ntfy_push():
     """Sends the screenshot and the target URL to your watch/phone."""
     channel = os.environ.get("NTFY_CHANNEL")
     target_url = os.environ.get("TARGET_URL")
+    headers = {
+            "Title": "FCB Tickets Changed!",
+            "Message": f"Website updated. See attached screenshot. Link: {target_url}",
+            "Click": target_url,
+            "Filename": "screenshot.png"
+        }
     
     if not channel or not target_url:
         print("NTFY_CHANNEL or TARGET_URL secret is missing. Skipping push.")
