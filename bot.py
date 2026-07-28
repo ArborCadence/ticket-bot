@@ -19,9 +19,16 @@ def get_website_text():
         print("TARGET_URL secret is missing!")
         return None
 
+    # This disguise makes the bot look like a normal Google Chrome browser
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5"
+    }
+
     try:
-        # verify=False bypasses the strict SSL certificate check
-        response = requests.get(url, verify=False, timeout=15)
+        # We now pass the headers disguise to the request
+        response = requests.get(url, headers=headers, verify=False, timeout=15)
         response.raise_for_status()
         print("Successfully downloaded website text!")
         return response.text
