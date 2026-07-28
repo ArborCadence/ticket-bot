@@ -1,14 +1,14 @@
 import os
 import smtplib
 import ssl
-import time
 import requests
 import urllib3
 from difflib import unified_diff
 from email.message import EmailMessage
 from playwright.sync_api import sync_playwright
+from bs4 import BeautifulSoup
 
-# Suppress the SSL warning so it doesn't spam your logs
+# Suppress the SSL warning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def get_website_text():
@@ -19,7 +19,6 @@ def get_website_text():
         print("TARGET_URL secret is missing!")
         return None
 
-    # This disguise makes the bot look like a normal Google Chrome browser
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -27,11 +26,15 @@ def get_website_text():
     }
 
     try:
-        # We now pass the headers disguise to the request
         response = requests.get(url, headers=headers, verify=False, timeout=15)
         response.raise_for_status()
         print("Successfully downloaded website text!")
-        return response.text
+        
+        # Strip away all the HTML tags and extract only the clean, visible text
+        soup = BeautifulSoup(response.text, 'html.parser')
+        clean_text = soup.get_text(separator='\n', strip=True)
+        return clean_text
+        
     except Exception as e:
         print(f"Error downloading website: {e}")
         return None
@@ -49,7 +52,7 @@ def send_email(diff_text):
     try:
         print("    -> Assembling email...")
         msg = EmailMessage()
-        msg.set_content(f"The ticket page has changed!\n\nHere are the differences:\n\n{diff_text}")
+        msg.set_content(f"The ticket page has changed!\n\nHere are the exact text differences:\n\n{diff_text}")
         msg['Subject'] = '🚨 FCB Ticket Page Changed!'
         msg['From'] = sender
         msg['To'] = receiver
@@ -72,7 +75,6 @@ def send_email(diff_text):
     print("Email function finished.")
 
 def take_screenshot(url, filename="screenshot.png"):
-    """Opens an invisible browser, visits the URL, and takes a picture."""
     print("Taking visual proof screenshot...")
     try:
         with sync_playwright() as p:
@@ -86,31 +88,24 @@ def take_screenshot(url, filename="screenshot.png"):
         print(f"Failed to take screenshot: {e}")
 
 def send_ntfy_push():
-    """Sends the screenshot and the target URL to your watch/phone."""
     channel = os.environ.get("NTFY_CHANNEL")
     target_url = os.environ.get("TARGET_URL")
-    headers = {
-            "Title": "FCB Tickets Changed!",
-            "Message": f"Website updated. See attached screenshot. Link: {target_url}",
-            "Click": target_url,
-            "Filename": "screenshot.png"
-        }
     
     if not channel or not target_url:
         print("NTFY_CHANNEL or TARGET_URL secret is missing. Skipping push.")
         return
 
-    # 1. Take the screenshot first using the hidden URL
     take_screenshot(target_url)
 
     print("Sending push notification with image...")
     
-    # 2. Attach the image file and send the push
     try:
         with open("screenshot.png", "rb") as image_file:
+            # Notice there are no \n\n breaks in this Message header anymore!
             headers = {
                 "Title": "FCB Tickets Changed!",
-                "Message": f"Website updated. See attached screenshot.\n\nLink: {target_url}",
+                "Message": f"Website updated. See attached screenshot. Link: {target_url}",
+                "Click": target_url,
                 "Filename": "screenshot.png"
             }
             
@@ -149,7 +144,6 @@ def main():
     if current_text != previous_text:
         print("Differences detected between website and text file!")
         
-        # Calculate exactly what changed
         diff = unified_diff(
             previous_text.splitlines(),
             current_text.splitlines(),
@@ -157,11 +151,9 @@ def main():
         )
         diff_text = '\n'.join(list(diff))
         
-        # Trigger the alerts
         send_email(diff_text)
         send_ntfy_push()
         
-        # Save the new state so we don't get alerted again until the next change
         print("Overwriting the state file with new text...")
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(current_text)
