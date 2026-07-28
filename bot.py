@@ -141,7 +141,7 @@ def main():
     with open(file_path, "r", encoding="utf-8") as f:
         previous_text = f.read()
 
-    if current_text != previous_text:
+    if current_text.strip() != previous_text.strip():
         print("Differences detected between website and text file!")
         
         diff = unified_diff(
