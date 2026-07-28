@@ -4,7 +4,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-    <meta name="_xsrf" content="GqXIJ1R7iDJh02Jt1uGHRV1TetGJvUFv" />
+    <meta name="_xsrf" content="9gyCf4XrSmRUDOkcViqQ0r00sQ5ABiv6" />
 
     <link rel="stylesheet" href="/ticket/static/css/bootstrap.min.css">
 
@@ -32,12 +32,12 @@
         <p><b>FC Bayern München -  VFB Stuttgart</b> (Allianz Arena)</p>
          <p><b>ACHTUNG! Weitergabe der Tickets nur noch über FCB-App, Allianz Arena App oder DTC möglich und denkt daran wir haben eine NEUE Konto-Nummer</b></p>
          <p class="alert alert-warning">https://fcbayern.com/de/mobile-app
-Bitte gebt im Feld &#34;Bemerkung&#34; eure Kontadaten zum DTC, FCB-App oder Allianz Arena-App an. 
+Bitte gebt im Feld &#34;Bemerkung&#34; eure Kontaktdaten zum DTC, FCB-App oder Allianz Arena-App an. 
 Und denkt daran wir haben eine NEUE Konto-Nummer</p>
 
     </div>
     <form method="post">
-        <input type="hidden" name="_xsrf" value="GqXIJ1R7iDJh02Jt1uGHRV1TetGJvUFv" />
+        <input type="hidden" name="_xsrf" value="9gyCf4XrSmRUDOkcViqQ0r00sQ5ABiv6" />
         <input type="hidden" name="match" value="125">
     <div class="card-body bg-white border-0">
         <table class="table" style="table-layout: auto;">
