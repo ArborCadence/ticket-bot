@@ -29,10 +29,11 @@ jobs:
 
       - name: Run script
         env:
-          NTFY_CHANNEL: ${{ secrets.NTFY_CHANNEL }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
           RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+          TARGET_URL: ${{ secrets.TARGET_URL }}
+          NTFY_CHANNEL: ${{ secrets.NTFY_CHANNEL }}
         run: python bot.py
 
       - name: Save state changes back to repository
