@@ -1,116 +1,162 @@
 import os
-import requests
-from bs4 import BeautifulSoup
 import smtplib
 import ssl
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import difflib
+import time
+import requests
 import urllib3
+from difflib import unified_diff
+from email.message import EmailMessage
+from playwright.sync_api import sync_playwright
 
+# Suppress the SSL warning so it doesn't spam your logs
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Configuration pulled safely from GitHub Secrets
-URL = "https://www.fcb-fanclub-mietraching.de/ticket/"
-SENDER_EMAIL = os.environ.get("SENDER_EMAIL")
-SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD")
-RECEIVER_EMAIL = os.environ.get("RECEIVER_EMAIL")
-STATE_FILE = "ticket_state.txt"
-
 def get_website_text():
+    print("Connecting to website...")
+    url = os.environ.get("TARGET_URL")
+    
+    if not url:
+        print("TARGET_URL secret is missing!")
+        return None
+
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-        response = requests.get(URL, headers=headers, timeout=15, verify=False)
+        # verify=False bypasses the strict SSL certificate check
+        response = requests.get(url, verify=False, timeout=15)
         response.raise_for_status()
-        
-        soup = BeautifulSoup(response.content, 'html.parser')
-        text = soup.get_text(separator='\n')
-        lines = [line.strip() for line in text.splitlines() if line.strip()]
-        return '\n'.join(lines)
+        print("Successfully downloaded website text!")
+        return response.text
     except Exception as e:
-        print(f"Error fetching website: {e}")
+        print(f"Error downloading website: {e}")
         return None
 
 def send_email(diff_text):
-    msg = MIMEMultipart()
-    msg['From'] = SENDER_EMAIL
-    msg['To'] = RECEIVER_EMAIL
-    msg['Subject'] = "Ticket Update: FCB Fanclub Mietraching"
+    print("Preparing to send email...")
+    sender = os.environ.get("SENDER_EMAIL")
+    password = os.environ.get("SENDER_PASSWORD")
+    receiver = os.environ.get("RECEIVER_EMAIL")
 
-    body = f"The following changes were detected on the ticket page:\n\n{diff_text}\n\nLink: {URL}"
-    msg.attach(MIMEText(body, 'plain'))
+    if not sender or not password or not receiver:
+        print("Email credentials missing from secrets. Skipping email.")
+        return
 
     try:
+        print("    -> Assembling email...")
+        msg = EmailMessage()
+        msg.set_content(f"The ticket page has changed!\n\nHere are the differences:\n\n{diff_text}")
+        msg['Subject'] = '🚨 FCB Ticket Page Changed!'
+        msg['From'] = sender
+        msg['To'] = receiver
+
+        print("    -> Connecting to Gmail server via SSL (port 465)...")
         context = ssl.create_default_context()
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
-        
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15, context=context)
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
-        server.send_message(msg)
-        server.quit()
-        print("Email sent successfully from cloud!")
+
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as server:
+            print("    -> Logging in...")
+            server.login(sender, password)
+            print("    -> Sending email...")
+            server.send_message(msg)
+            
+        print("Email sent successfully!")
     except Exception as e:
-        print(f"Error sending email: {e}")
-        
-def send_push_notification(diff_text):
-    # This pulls your secure channel name from GitHub Secrets
-    ntfy_channel = os.environ.get("NTFY_CHANNEL") 
+        print(f"    -> ERROR inside email function: {e}")
     
-    if not ntfy_channel:
-        print("Error: NTFY_CHANNEL secret is missing.")
-        return
+    print("Email function finished.")
 
-    print("Sending push notification to phone/watch...")
+def take_screenshot(url, filename="screenshot.png"):
+    """Opens an invisible browser, visits the URL, and takes a picture."""
+    print("Taking visual proof screenshot...")
     try:
-        # Sends a POST request to ntfy.sh to trigger the vibration
-        response = requests.post(
-            f"https://ntfy.sh/{ntfy_channel}",
-            data=f"Ticket page changed!\n\n{diff_text}".encode(encoding='utf-8'),
-            headers={
-                "Title": "FCB Ticket Alert!",
-                "Priority": "urgent",
-                "Tags": "rotating_light,ticket"
-            }
-        )
-        if response.status_code == 200:
-            print("Push notification sent successfully!")
-        else:
-            print(f"Failed to send push. Status code: {response.status_code}")
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(url)
+            page.screenshot(path=filename)
+            browser.close()
+            print("Screenshot saved successfully.")
     except Exception as e:
-        print(f"ERROR sending push notification: {e}")
-        
-def main():
-    current_text = get_website_text()
-    if not current_text:
+        print(f"Failed to take screenshot: {e}")
+
+def send_ntfy_push():
+    """Sends the screenshot and the target URL to your watch/phone."""
+    channel = os.environ.get("NTFY_CHANNEL")
+    target_url = os.environ.get("TARGET_URL")
+    
+    if not channel or not target_url:
+        print("NTFY_CHANNEL or TARGET_URL secret is missing. Skipping push.")
         return
 
-    old_text = ""
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, 'r', encoding='utf-8') as f:
-            old_text = f.read()
+    # 1. Take the screenshot first using the hidden URL
+    take_screenshot(target_url)
 
-    # If previous state exists and website changed, send email
-    if old_text and current_text != old_text:
-        diff = difflib.unified_diff(
-            old_text.splitlines(),
+    print("Sending push notification with image...")
+    
+    # 2. Attach the image file and send the push
+    try:
+        with open("screenshot.png", "rb") as image_file:
+            headers = {
+                "Title": "FCB Tickets Changed!",
+                "Message": f"Website updated. See attached screenshot.\n\nLink: {target_url}",
+                "Filename": "screenshot.png"
+            }
+            
+            response = requests.post(
+                f"https://ntfy.sh/{channel}",
+                data=image_file,
+                headers=headers
+            )
+            print(f"Push sent successfully! Status: {response.status_code}")
+    except FileNotFoundError:
+         print("Screenshot file not found, cannot attach to ntfy.")
+    except Exception as e:
+        print(f"Failed to send push notification: {e}")
+
+def main():
+    print("--- Starting New Check ---")
+    current_text = get_website_text()
+    
+    if current_text is None:
+        print("Check failed due to download error. Sleeping...")
+        return
+
+    file_path = "ticket_state.txt"
+    
+    if not os.path.exists(file_path):
+        print("No previous state file found. Creating one now...")
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(current_text)
+        print("State file created. Check complete.")
+        return
+
+    print("Loaded previous text from state file.")
+    with open(file_path, "r", encoding="utf-8") as f:
+        previous_text = f.read()
+
+    if current_text != previous_text:
+        print("Differences detected between website and text file!")
+        
+        # Calculate exactly what changed
+        diff = unified_diff(
+            previous_text.splitlines(),
             current_text.splitlines(),
-            fromfile='Old Website',
-            tofile='New Website',
             lineterm=''
         )
         diff_text = '\n'.join(list(diff))
-        if diff_text:
-            send_email(diff_text)
-            send_push_notification(diff_text)
-            
-    # Save the updated website text
-    if current_text != old_text:
-        with open(STATE_FILE, 'w', encoding='utf-8') as f:
+        
+        # Trigger the alerts
+        send_email(diff_text)
+        send_ntfy_push()
+        
+        # Save the new state so we don't get alerted again until the next change
+        print("Overwriting the state file with new text...")
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(current_text)
-        print("State file updated.")
+        print("File saved successfully.")
+    else:
+        print("No changes detected.")
+
+    print("Check complete.")
 
 if __name__ == "__main__":
     main()
