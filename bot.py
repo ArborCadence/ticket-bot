@@ -54,7 +54,34 @@ def send_email(diff_text):
         print("Email sent successfully from cloud!")
     except Exception as e:
         print(f"Error sending email: {e}")
+        
+def send_push_notification(diff_text):
+    # This pulls your secure channel name from GitHub Secrets
+    ntfy_channel = os.environ.get("NTFY_CHANNEL") 
+    
+    if not ntfy_channel:
+        print("Error: NTFY_CHANNEL secret is missing.")
+        return
 
+    print("Sending push notification to phone/watch...")
+    try:
+        # Sends a POST request to ntfy.sh to trigger the vibration
+        response = requests.post(
+            f"https://ntfy.sh/{ntfy_channel}",
+            data=f"Ticket page changed!\n\n{diff_text}".encode(encoding='utf-8'),
+            headers={
+                "Title": "FCB Ticket Alert!",
+                "Priority": "urgent",
+                "Tags": "rotating_light,ticket"
+            }
+        )
+        if response.status_code == 200:
+            print("Push notification sent successfully!")
+        else:
+            print(f"Failed to send push. Status code: {response.status_code}")
+    except Exception as e:
+        print(f"ERROR sending push notification: {e}")
+        
 def main():
     current_text = get_website_text()
     if not current_text:
@@ -77,7 +104,8 @@ def main():
         diff_text = '\n'.join(list(diff))
         if diff_text:
             send_email(diff_text)
-
+            send_push_notification(diff_text)
+            
     # Save the updated website text
     if current_text != old_text:
         with open(STATE_FILE, 'w', encoding='utf-8') as f:
