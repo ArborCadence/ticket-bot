@@ -141,19 +141,24 @@ def main():
     with open(file_path, "r", encoding="utf-8") as f:
         previous_text = f.read()
 
-    if current_text.strip() != previous_text.strip():
+    # BULLETPROOF CLEANING: Break into lines, strip invisible spaces from every line, and delete all empty lines
+    prev_lines = [line.strip() for line in previous_text.splitlines() if line.strip()]
+    curr_lines = [line.strip() for line in current_text.splitlines() if line.strip()]
+
+    if curr_lines != prev_lines:
         print("Differences detected between website and text file!")
         
-        diff = unified_diff(
-            previous_text.splitlines(),
-            current_text.splitlines(),
-            lineterm=''
-        )
+        diff = unified_diff(prev_lines, curr_lines, lineterm='')
         diff_text = '\n'.join(list(diff))
         
-        send_email(diff_text)
-        send_ntfy_push()
-        
+        # FAILSAFE: If the difference text is completely empty, do not send the alerts!
+        if not diff_text.strip():
+            print("Difference was only invisible formatting. Skipping phantom alerts.")
+        else:
+            send_email(diff_text)
+            send_ntfy_push()
+            
+        # Always overwrite the file with the new state so we don't get stuck in a loop
         print("Overwriting the state file with new text...")
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(current_text)
