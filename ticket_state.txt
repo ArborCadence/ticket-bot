@@ -9,7 +9,7 @@ verfügbar
 Preis
 buchen
 III
-10
+7
 75.00 €
 Buchen
 18.09.2026 20:30
@@ -32,6 +32,6 @@ IV  (ermäßigt)
 0
 35.00 €
 V
-0
+-4
 30.00 €
 Buchen
