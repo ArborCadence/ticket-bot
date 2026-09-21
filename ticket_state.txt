@@ -9,8 +9,11 @@ verfügbar
 Preis
 buchen
 III
-5
+7
 65.00 €
+V
+11
+30.00 €
 Buchen
 21.10.2026 21:00
 (Abfahrt Bus: 21.10.2026 18:15)
@@ -23,7 +26,7 @@ verfügbar
 Preis
 buchen
 III
-11
+0
 105.00 €
 V
 0
