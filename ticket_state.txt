@@ -9,7 +9,7 @@ verfügbar
 Preis
 buchen
 III
-8
+6
 65.00 €
 Buchen
 21.10.2026 21:00
@@ -23,9 +23,9 @@ verfügbar
 Preis
 buchen
 III
-20
+14
 105.00 €
 V
-20
+16
 35.00 €
 Buchen
