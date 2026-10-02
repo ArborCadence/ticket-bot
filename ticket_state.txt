@@ -26,10 +26,10 @@ verfügbar
 Preis
 buchen
 III
--1
+0
 105.00 €
 V
--3
+-2
 35.00 €
 Buchen
 28.10.2026 20:45
@@ -57,10 +57,10 @@ verfügbar
 Preis
 buchen
 III
-5
+1
 65.00 €
 III  (ermäßigt)
-3
+2
 40.00 €
 V
 0
