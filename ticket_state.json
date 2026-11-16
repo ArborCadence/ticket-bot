@@ -1,0 +1,73 @@
+{
+  "failures": 0,
+  "matches": {
+    "136": {
+      "categories": {
+        "III": {
+          "available": 0,
+          "price": "65.00 €"
+        },
+        "V": {
+          "available": 0,
+          "price": "30.00 €"
+        }
+      },
+      "date": "20.11.2026 20:30",
+      "title": "FC Bayern München - 1.FC Köln"
+    },
+    "138": {
+      "categories": {
+        "III": {
+          "available": 0,
+          "price": "75.00 €"
+        },
+        "V": {
+          "available": 1,
+          "price": "35.00 €"
+        }
+      },
+      "date": "08.12.2026 21:00",
+      "title": "FC Bayern München - Slavia Prag"
+    },
+    "139": {
+      "categories": {
+        "III": {
+          "available": 6,
+          "price": "65.00 €"
+        },
+        "III (ermäßigt)": {
+          "available": 2,
+          "price": "25.00 €"
+        },
+        "V (ermäßigt)": {
+          "available": 0,
+          "price": "30.00 €"
+        }
+      },
+      "date": "01.12.2026 20:45",
+      "title": "FC Bayern München - Hertha BSC"
+    },
+    "140": {
+      "categories": {
+        "III": {
+          "available": 20,
+          "price": "65.00 €"
+        },
+        "IV": {
+          "available": 3,
+          "price": "55.00 €"
+        },
+        "IV (ermäßigt)": {
+          "available": 2,
+          "price": "35.00 €"
+        },
+        "V": {
+          "available": 3,
+          "price": "30.00 €"
+        }
+      },
+      "date": "04.12.2026 20:30",
+      "title": "FC Bayern München - SC Paderborn"
+    }
+  }
+}
