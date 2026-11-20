@@ -1,20 +1,6 @@
 {
   "failures": 0,
   "matches": {
-    "136": {
-      "categories": {
-        "III": {
-          "available": 0,
-          "price": "65.00 €"
-        },
-        "V": {
-          "available": 0,
-          "price": "30.00 €"
-        }
-      },
-      "date": "20.11.2026 20:30",
-      "title": "FC Bayern München - 1.FC Köln"
-    },
     "138": {
       "categories": {
         "III": {
